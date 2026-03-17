@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta name="google-site-verification" content="E1k30SBcVmZsYHTUR5eV1Crn8H2HGRYyd2HUhEu-P_o" />
-<title>Ali Kamal</title>
+<title>Ali Kamal — Portfolio 3D World</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{overflow:hidden;width:100%;height:100%;}
@@ -79,7 +78,7 @@ html,body{overflow:hidden;width:100%;height:100%;}
   <button class="i-btn" onclick="startGame()">Entrer dans le Monde</button>
   <div class="i-keys">
     <b>✈</b> Z/↑ Avancer · Q/D Tourner · Espace Monter · C Descendre<br/>
-    <b>🚗🧍</b> ZQSD / Flèches · <b>T</b> Changer de véhicule
+    <b>🚗</b> ZQSD Conduire · <b>🧍</b> Z/S Avancer/Reculer · Clic+glisser pour tourner · <b>T</b> Changer
   </div>
   <div class="i-stack">
     <span class="i-chip">HTML</span><span class="i-chip">CSS</span><span class="i-chip">JavaScript</span>
@@ -679,8 +678,12 @@ function doXform(dt) {
     vs[xTo].position.copy(vs[xFrom].position);
     vs[xTo].position.y = xTo === MODE.PLANE ? 12 : .5;
     if (xTo === MODE.CAR) { CS.yaw = PS.yaw; CS.speed = 0; }
-    if (xTo === MODE.HUMAN) { HS.yaw = PS.yaw; HS.camYaw = PS.yaw; HS.speed = 0; }
-    if (xTo === MODE.PLANE) { PS.yaw = CS.yaw || HS.yaw; PS.speed = 0; PS.vy = 0; }
+    if (xTo === MODE.HUMAN) {
+      HC.camYaw  = PS.yaw || CS.yaw || Math.PI;
+      HC.charYaw = HC.camYaw;
+      HS.speed = 0;
+    }
+    if (xTo === MODE.PLANE) { PS.yaw = CS.yaw || HC.camYaw; PS.speed = 0; PS.vy = 0; }
   }
   if (t >= 1) {
     vs[xFrom].visible = false; vs[xFrom].scale.setScalar(1); mode = xTo;
@@ -736,35 +739,141 @@ function doCar() {
   document.getElementById('alt-v').textContent = Math.round(Math.abs(CS.speed)/.9*100)+'%';
 }
 
-// ── HUMAN ──
-let ptrLocked = false;
-document.addEventListener('pointerlockchange',()=>ptrLocked=!!document.pointerLockElement);
-window.addEventListener('mousemove',e=>{
-  if(mode===MODE.HUMAN&&ptrLocked){ HS.camYaw-=e.movementX*.003; HS.yaw=HS.camYaw; }
+// ── HUMAN — GTA-style third-person controller ──
+// Camera orbits the character; character faces direction of movement.
+// camYaw is the horizontal angle the CAMERA is looking FROM.
+// The character always faces forward = camera-forward direction when moving.
+
+const HC = {
+  camYaw   : Math.PI,   // camera yaw (player rotates this with mouse or Q/D)
+  camPitch : 0.28,      // fixed slight downward tilt (radians)
+  camDist  : 18,        // distance behind character
+  camHeight: 7,         // height above character pivot
+  charYaw  : Math.PI,   // smooth character facing angle
+  speed    : 0,         // current scalar speed
+  walkT    : 0,         // walk animation timer
+  isMoving : false,
+};
+
+// Mouse look — no pointer lock needed, just right-drag or always-on
+let mouseDown = false;
+let lastMouseX = 0;
+document.addEventListener('mousedown', e => { if(e.button===2||e.button===0){ mouseDown=true; lastMouseX=e.clientX; } });
+document.addEventListener('mouseup',   () => mouseDown=false);
+document.addEventListener('mousemove', e => {
+  if(mode===MODE.HUMAN && mouseDown){
+    const dx = e.clientX - lastMouseX;
+    HC.camYaw -= dx * 0.004;
+    lastMouseX = e.clientX;
+  }
 });
-document.getElementById('c').addEventListener('click',()=>{ if(mode===MODE.HUMAN&&!ptrLocked) document.getElementById('c').requestPointerLock(); });
+// Also allow Q/D to rotate camera when in human mode (no movement)
+document.getElementById('c').addEventListener('contextmenu', e => e.preventDefault());
 
 function doHuman() {
-  const fwd    = (KEYS['z']||KEYS['Z']||KEYS['ArrowUp'])?1:(KEYS['s']||KEYS['S']||KEYS['ArrowDown'])?-1:0;
-  const strafe = (KEYS['d']||KEYS['D']||KEYS['ArrowRight'])?1:(KEYS['q']||KEYS['Q']||KEYS['ArrowLeft'])?-1:0;
-  const forward = new THREE.Vector3(Math.sin(HS.camYaw),0,Math.cos(HS.camYaw));
-  const right   = new THREE.Vector3(Math.cos(HS.camYaw),0,-Math.sin(HS.camYaw));
-  const mv = forward.clone().multiplyScalar(-fwd*.16).addScaledVector(right,strafe*.16);
-  HS.speed = mv.length();
-  const nx=humanG.position.x+mv.x, nz=humanG.position.z+mv.z;
-  if(!hitBld(nx,nz,1.8)){ humanG.position.x=nx; humanG.position.z=nz; }
-  humanG.position.y=.1; clamp(humanG);
-  if(HS.speed>.01){ const ty=Math.atan2(mv.x,mv.z); humanG.rotation.y=ty; HS.walkT+=.15; }
-  const w=Math.sin(HS.walkT);
-  if(hParts.legL) hParts.legL.rotation.x=w*.5;
-  if(hParts.legR) hParts.legR.rotation.x=-w*.5;
-  if(hParts.armL) hParts.armL.rotation.x=-w*.35;
-  if(hParts.armR) hParts.armR.rotation.x=w*.35;
-  const eye = humanG.position.clone().add(new THREE.Vector3(0,6.5,0));
-  const look = eye.clone().add(new THREE.Vector3(Math.sin(HS.camYaw)*10,0,Math.cos(HS.camYaw)*10));
-  camera.position.lerp(eye,.18); camera.lookAt(look);
-  document.getElementById('spd-v').textContent = Math.round(HS.speed*100);
-  document.getElementById('alt-v').textContent = Math.round(humanG.position.y);
+  // ── INPUT ──
+  const moveF = (KEYS['z']||KEYS['Z']||KEYS['ArrowUp'])   ? 1 : 0;
+  const moveB = (KEYS['s']||KEYS['S']||KEYS['ArrowDown'])  ? 1 : 0;
+  const moveL = (KEYS['q']||KEYS['Q']||KEYS['ArrowLeft'])  ? 1 : 0;
+  const moveR = (KEYS['d']||KEYS['D']||KEYS['ArrowRight']) ? 1 : 0;
+
+  // Q/D rotate camera when no pointer lock
+  if(!mouseDown){
+    if(moveL) HC.camYaw += 0.04;
+    if(moveR) HC.camYaw -= 0.04;
+  }
+
+  // ── MOVEMENT DIRECTION ──
+  // Camera looks in direction (-sin(camYaw), 0, -cos(camYaw)) in world space.
+  // "Forward" for the player = the direction the camera is looking at.
+  const camForwardX =  Math.sin(HC.camYaw);
+  const camForwardZ =  Math.cos(HC.camYaw);
+  const camRightX   =  Math.cos(HC.camYaw);
+  const camRightZ   = -Math.sin(HC.camYaw);
+
+  // Build movement vector in world space
+  // Z = forward, S = backward, Q = strafe left, D = strafe right
+  let mvX = 0, mvZ = 0;
+  if(moveF){ mvX += camForwardX; mvZ += camForwardZ; }   // Z = forward
+  if(moveB){ mvX -= camForwardX; mvZ -= camForwardZ; }   // S = backward
+  if(moveL && mouseDown){ mvX -= camRightX; mvZ -= camRightZ; }  // Q strafe (only when dragging cam)
+  if(moveR && mouseDown){ mvX += camRightX; mvZ += camRightZ; }
+
+  const inputLen = Math.sqrt(mvX*mvX + mvZ*mvZ);
+  HC.isMoving = inputLen > 0.01;
+
+  // ── SPEED ──
+  const walkSpeed = 0.22;
+  const runSpeed  = 0.38; // if we add sprint later
+  const targetSpeed = HC.isMoving ? walkSpeed : 0;
+  HC.speed += (targetSpeed - HC.speed) * 0.15; // smooth acceleration
+
+  // ── MOVE CHARACTER ──
+  if(HC.speed > 0.005 && HC.isMoving){
+    const norm = 1 / inputLen;
+    const dx = (mvX * norm) * HC.speed;
+    const dz = (mvZ * norm) * HC.speed;
+    const nx = humanG.position.x + dx;
+    const nz = humanG.position.z + dz;
+    if(!hitBld(nx, humanG.position.z, 1.8)) humanG.position.x = nx;
+    if(!hitBld(humanG.position.x, nz, 1.8)) humanG.position.z = nz;
+    clamp(humanG);
+
+    // ── CHARACTER FACING ──
+    // Character rotates to face the direction of movement
+    const targetCharYaw = Math.atan2(mvX * norm, mvZ * norm);
+    // Smooth rotation — find shortest angular path
+    let diff = targetCharYaw - HC.charYaw;
+    while(diff >  Math.PI) diff -= Math.PI*2;
+    while(diff < -Math.PI) diff += Math.PI*2;
+    HC.charYaw += diff * 0.18;
+  } else {
+    HC.speed *= 0.8; // quick stop
+  }
+
+  // Apply character rotation (Y axis only — no tilt)
+  humanG.position.y = 0.1;
+  humanG.rotation.set(0, HC.charYaw, 0);
+
+  // ── WALK ANIMATION ──
+  if(HC.isMoving) HC.walkT += 0.16;
+  const swing = Math.sin(HC.walkT) * (HC.isMoving ? 1 : 0);
+  const swingAmt = 0.5 * Math.min(HC.speed / walkSpeed, 1);
+  if(hParts.legL) hParts.legL.rotation.x =  swing * swingAmt;
+  if(hParts.legR) hParts.legR.rotation.x = -swing * swingAmt;
+  if(hParts.armL) hParts.armL.rotation.x = -swing * swingAmt * 0.7;
+  if(hParts.armR) hParts.armR.rotation.x =  swing * swingAmt * 0.7;
+  // Body bob
+  if(hParts.torso) hParts.torso.position.y = 4.4 + Math.abs(Math.sin(HC.walkT * 2)) * (HC.isMoving ? 0.08 : 0);
+
+  // ── GTA-STYLE THIRD-PERSON CAMERA ──
+  // Camera sits behind and above the character, at angle camYaw
+  // "Behind" = opposite of camera forward direction
+  const behindX = -Math.sin(HC.camYaw);
+  const behindZ = -Math.cos(HC.camYaw);
+
+  const pivotX = humanG.position.x;
+  const pivotY = humanG.position.y + 4.5;  // chest height pivot
+  const pivotZ = humanG.position.z;
+
+  const targetCamX = pivotX + behindX * HC.camDist;
+  const targetCamY = pivotY + HC.camHeight;
+  const targetCamZ = pivotZ + behindZ * HC.camDist;
+
+  // Smooth camera follow
+  camera.position.x += (targetCamX - camera.position.x) * 0.10;
+  camera.position.y += (targetCamY - camera.position.y) * 0.10;
+  camera.position.z += (targetCamZ - camera.position.z) * 0.10;
+
+  // Camera always looks at character pivot
+  const lookX = pivotX;
+  const lookY = pivotY + 1.5;
+  const lookZ = pivotZ;
+  camera.lookAt(lookX, lookY, lookZ);
+
+  // ── HUD ──
+  document.getElementById('spd-v').textContent = Math.round(HC.speed * 400);
+  document.getElementById('alt-v').textContent = '—';
 }
 
 function hitBld(nx,nz,margin){ return bldData.some(b=>Math.abs(nx-b.cx)<b.hw+margin&&Math.abs(nz-b.cz)<b.hd+margin); }
@@ -776,12 +885,12 @@ function setModeHUD(m) {
   const hints={
     plane:'<b>Z/↑</b> Avancer · <b>Q/D</b> Tourner · <b>Espace</b> Monter · <b>C</b> Descendre · <b>T</b> Transformer',
     car:'<b>Z/↑↓</b> Conduire · <b>Q/D</b> Tourner · <b>T</b> Transformer · Survolez les bâtiments',
-    human:'<b>ZQSD</b> Marcher · <b>Clic</b> Capturer souris · <b>T</b> Transformer · Survolez les bâtiments',
+    human:'<b>Z</b> Avancer · <b>S</b> Reculer · <b>Q/D</b> Tourner la caméra · <b>Clic+glisser</b> Regarder · <b>T</b> Transformer',
   };
   document.getElementById('mode-ico').textContent=icons[m]||'✈';
   document.getElementById('mode-txt').textContent=txts[m]||'MODE AVION';
   document.getElementById('hint').innerHTML=hints[m]||'';
-  document.getElementById('alt-lbl').textContent=m==='car'?'Accélération':m==='human'?'Position Y':'Altitude (m)';
+  document.getElementById('alt-lbl').textContent=m==='car'?'Accélération':m==='human'?'Vitesse':'Altitude (m)';
 }
 
 // ================================================================
