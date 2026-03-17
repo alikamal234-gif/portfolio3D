@@ -61,6 +61,36 @@ html,body{overflow:hidden;width:100%;height:100%;}
 .xring{width:88px;height:88px;border:2px solid rgba(79,158,255,.9);border-radius:50%;animation:xr 1.4s infinite;margin:0 auto 8px;}
 @keyframes xr{0%,100%{transform:scale(1);opacity:.9;}50%{transform:scale(1.2);opacity:.25;}}
 .xtxt{font-family:'Segoe UI',sans-serif;color:#fff;font-size:12px;font-weight:700;letter-spacing:.1em;text-shadow:0 0 8px #4F9EFF;}
+
+/* ── COMBAT HUD ── */
+#health-bar{position:fixed;bottom:78px;left:24px;font-family:'Segoe UI',sans-serif;z-index:30;}
+#health-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px;}
+#health-track{width:180px;height:12px;background:rgba(255,255,255,.1);border-radius:6px;overflow:hidden;border:1px solid rgba(255,255,255,.1);}
+#health-fill{height:100%;width:100%;background:linear-gradient(90deg,#ff3333,#ff6644);border-radius:6px;transition:width .3s,background .3s;}
+#ammo-bar{position:fixed;bottom:78px;right:24px;font-family:'Segoe UI',sans-serif;z-index:30;text-align:right;}
+#ammo-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px;}
+#ammo-val{font-size:20px;font-weight:800;color:#f59e0b;}
+#sprint-bar{position:fixed;bottom:98px;left:24px;font-family:'Segoe UI',sans-serif;z-index:30;display:none;}
+#sprint-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:3px;}
+#sprint-track{width:120px;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
+#sprint-fill{height:100%;width:100%;background:linear-gradient(90deg,#4afa9a,#4F9EFF);border-radius:3px;transition:width .1s;}
+#match-btn{position:fixed;top:108px;left:50%;transform:translateX(-50%);font-family:'Segoe UI',sans-serif;z-index:30;padding:9px 28px;border-radius:24px;font-size:12px;font-weight:800;letter-spacing:.08em;cursor:pointer;border:none;transition:all .3s;background:rgba(79,158,255,.15);color:#4F9EFF;border:1px solid rgba(79,158,255,.35);}
+#match-btn.active{background:rgba(255,50,50,.2);color:#ff4444;border-color:rgba(255,50,50,.5);animation:pulse-btn .8s infinite;}
+@keyframes pulse-btn{0%,100%{box-shadow:0 0 0 0 rgba(255,50,50,.3);}50%{box-shadow:0 0 0 8px rgba(255,50,50,0);}}
+#killfeed{position:fixed;top:160px;right:20px;z-index:30;display:flex;flex-direction:column;gap:4px;pointer-events:none;}
+.kf-item{font-family:'Segoe UI',sans-serif;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:5px 10px;font-size:11px;color:#fff;animation:kfin .3s ease;white-space:nowrap;}
+@keyframes kfin{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+#crosshair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;pointer-events:none;opacity:0;transition:opacity .3s;}
+.ch-h,.ch-v{position:absolute;background:rgba(255,255,255,.85);}
+.ch-h{width:20px;height:2px;top:50%;left:50%;transform:translate(-50%,-50%);}
+.ch-v{width:2px;height:20px;top:50%;left:50%;transform:translate(-50%,-50%);}
+.ch-dot{position:absolute;width:4px;height:4px;background:#fff;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
+#dmg-flash{position:fixed;inset:0;z-index:150;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,transparent 30%,rgba(255,0,0,.5) 100%);transition:opacity .08s;}
+#dead-screen{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.85);display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:'Segoe UI',sans-serif;}
+#dead-screen h2{font-size:4rem;font-weight:900;color:#ff3333;margin-bottom:8px;letter-spacing:-.02em;}
+#dead-screen p{font-size:14px;color:rgba(255,255,255,.5);letter-spacing:.1em;}
+#score-panel{position:fixed;top:158px;left:50%;transform:translateX(-50%);font-family:'Segoe UI',sans-serif;background:rgba(0,0,0,.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:5px 16px;color:#fff;font-size:11px;display:none;gap:16px;z-index:30;}
+#score-panel span{opacity:.6;}#score-panel b{color:#f59e0b;}
 </style>
 </head>
 <body>
@@ -98,6 +128,27 @@ html,body{overflow:hidden;width:100%;height:100%;}
 <div id="hint"><b>Z/↑</b> Avancer · <b>Q/D</b> Tourner · <b>Espace</b> Monter · <b>T</b> Changer véhicule</div>
 <div id="xprompt"><div class="xring"></div><div class="xtxt">APPROCHE · T pour transformer</div></div>
 <div id="xflash"></div>
+<div id="lock-hint" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:50;pointer-events:none;font-family:'Segoe UI',sans-serif;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:14px 22px;color:rgba(255,255,255,.8);font-size:13px;text-align:center;letter-spacing:.05em;">🖱 <b>Clic</b> pour capturer la souris · <b>Esc</b> pour libérer</div>
+
+<!-- COMBAT HUD -->
+<div id="health-bar">
+  <div id="health-label">❤ Santé</div>
+  <div id="health-track"><div id="health-fill"></div></div>
+</div>
+<div id="ammo-bar">
+  <div id="ammo-label">🔫 Munitions</div>
+  <div id="ammo-val">∞</div>
+</div>
+<div id="sprint-bar">
+  <div id="sprint-label">⚡ Sprint</div>
+  <div id="sprint-track"><div id="sprint-fill"></div></div>
+</div>
+<button id="match-btn" onclick="toggleMatch()">⚔ DÉMARRER COMBAT</button>
+<div id="score-panel"><span>Kills:</span> <b id="kill-count">0</b> &nbsp; <span>Bots:</span> <b id="bot-count">0</b></div>
+<div id="killfeed"></div>
+<div id="crosshair"><div class="ch-h"></div><div class="ch-v"></div><div class="ch-dot"></div></div>
+<div id="dmg-flash"></div>
+<div id="dead-screen"><h2>MORT</h2><p>Respawn dans <span id="respawn-count">3</span>s...</p></div>
 
 <!-- TOOLTIP -->
 <div id="tooltip"><div class="tti">
@@ -693,6 +744,10 @@ function doXform(dt) {
 
 // ── FLIGHT ──
 function doPlane() {
+  // Consume mouse delta — allows mouse drag to assist yaw in plane mode
+  const { dx: mdx } = consumeMouseDelta();
+  if (Math.abs(mdx) > 1) PS.yaw -= mdx * 0.0015;
+
   const fwd  = (KEYS['z']||KEYS['Z']||KEYS['ArrowUp']) ?1:(KEYS['s']||KEYS['S']||KEYS['ArrowDown'])?-1:0;
   const turn = (KEYS['d']||KEYS['D']||KEYS['ArrowRight'])?1:(KEYS['q']||KEYS['Q']||KEYS['ArrowLeft'])?-1:0;
   const climb= (KEYS[' ']||KEYS['Shift'])?1:(KEYS['c']||KEYS['C']||KEYS['Control'])?-1:0;
@@ -720,6 +775,7 @@ function doPlane() {
 
 // ── CAR ──
 function doCar() {
+  consumeMouseDelta(); // drain so plane doesn't accumulate
   const fwd  = (KEYS['z']||KEYS['Z']||KEYS['ArrowUp'])?1:(KEYS['s']||KEYS['S']||KEYS['ArrowDown'])?-1:0;
   const turn = (KEYS['d']||KEYS['D']||KEYS['ArrowRight'])?1:(KEYS['q']||KEYS['Q']||KEYS['ArrowLeft'])?-1:0;
   if(fwd===1) CS.speed=Math.min(CS.speed+.022,.9);
@@ -739,141 +795,199 @@ function doCar() {
   document.getElementById('alt-v').textContent = Math.round(Math.abs(CS.speed)/.9*100)+'%';
 }
 
-// ── HUMAN — GTA-style third-person controller ──
-// Camera orbits the character; character faces direction of movement.
-// camYaw is the horizontal angle the CAMERA is looking FROM.
-// The character always faces forward = camera-forward direction when moving.
+// ── HUMAN — Full mouse-look third-person controller ──
 
 const HC = {
-  camYaw   : Math.PI,   // camera yaw (player rotates this with mouse or Q/D)
-  camPitch : 0.28,      // fixed slight downward tilt (radians)
-  camDist  : 18,        // distance behind character
-  camHeight: 7,         // height above character pivot
-  charYaw  : Math.PI,   // smooth character facing angle
-  speed    : 0,         // current scalar speed
-  walkT    : 0,         // walk animation timer
+  camYaw   : Math.PI,   // horizontal camera angle
+  camPitch : 0.25,      // vertical camera angle (clamped)
+  camDist  : 18,
+  camHeight: 0,         // offset driven by pitch
+  charYaw  : Math.PI,   // smoothed character facing
+  speed    : 0,
+  walkT    : 0,
   isMoving : false,
+  sprintMult: 1.0,
 };
 
-// Mouse look — no pointer lock needed, just right-drag or always-on
-let mouseDown = false;
-let lastMouseX = 0;
-document.addEventListener('mousedown', e => { if(e.button===2||e.button===0){ mouseDown=true; lastMouseX=e.clientX; } });
-document.addEventListener('mouseup',   () => mouseDown=false);
+// ── POINTER LOCK — cleanest mouse-look approach ──
+let pointerLocked = false;
+
+function requestLock() {
+  const c = document.getElementById('c');
+  if (c.requestPointerLock) c.requestPointerLock();
+}
+
+document.addEventListener('pointerlockchange', () => {
+  pointerLocked = !!document.pointerLockElement;
+  // Show/hide lock hint
+  const hint = document.getElementById('lock-hint');
+  if (hint) hint.style.display = pointerLocked ? 'none' : (mode === MODE.HUMAN ? 'block' : 'none');
+});
+
+// Canvas click → lock pointer when in human mode
+document.getElementById('c').addEventListener('click', e => {
+  if (mode === MODE.HUMAN && !pointerLocked && gameOn) requestLock();
+});
+
+// Raw mouse delta — used by ALL modes for camera
+const MOUSE_DELTA = { x: 0, y: 0 };
+let mouseDown = false; // still used for non-locked drag in other modes
+let lastMouseX = 0, lastMouseY = 0;
+
 document.addEventListener('mousemove', e => {
-  if(mode===MODE.HUMAN && mouseDown){
-    const dx = e.clientX - lastMouseX;
-    HC.camYaw -= dx * 0.004;
+  if (pointerLocked) {
+    // Pointer lock gives raw movement — most accurate
+    MOUSE_DELTA.x += e.movementX;
+    MOUSE_DELTA.y += e.movementY;
+  } else if (mouseDown) {
+    MOUSE_DELTA.x += e.clientX - lastMouseX;
+    MOUSE_DELTA.y += e.clientY - lastMouseY;
     lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+    // tooltip positioning
+    const tt = document.getElementById('tooltip');
+    if (tt) {
+      tt.style.left = Math.min(e.clientX+16, window.innerWidth-300)+'px';
+      tt.style.top  = Math.max(e.clientY-6, 6)+'px';
+    }
+  } else {
+    // tooltip positioning always
+    const tt = document.getElementById('tooltip');
+    if (tt) {
+      tt.style.left = Math.min(e.clientX+16, window.innerWidth-300)+'px';
+      tt.style.top  = Math.max(e.clientY-6, 6)+'px';
+    }
   }
 });
-// Also allow Q/D to rotate camera when in human mode (no movement)
+
+document.addEventListener('mousedown', e => {
+  mouseDown = true;
+  lastMouseX = e.clientX;
+  lastMouseY = e.clientY;
+  // Shoot on left click — for ALL modes
+  if (gameOn && e.button === 0) {
+    if (!pointerLocked && mode === MODE.HUMAN) {
+      requestLock(); return;
+    }
+    shootPlayer();
+  }
+});
+document.addEventListener('mouseup', () => mouseDown = false);
 document.getElementById('c').addEventListener('contextmenu', e => e.preventDefault());
 
+// Consume accumulated mouse delta each frame
+function consumeMouseDelta() {
+  const dx = MOUSE_DELTA.x; MOUSE_DELTA.x = 0;
+  const dy = MOUSE_DELTA.y; MOUSE_DELTA.y = 0;
+  return { dx, dy };
+}
+
 function doHuman() {
+  // ── CONSUME MOUSE ──
+  const { dx, dy } = consumeMouseDelta();
+  const sensitivity = 0.0025;
+  HC.camYaw   -= dx * sensitivity;
+  HC.camPitch -= dy * sensitivity;
+  HC.camPitch  = Math.max(-0.5, Math.min(0.8, HC.camPitch)); // clamp vertical
+
   // ── INPUT ──
   const moveF = (KEYS['z']||KEYS['Z']||KEYS['ArrowUp'])   ? 1 : 0;
   const moveB = (KEYS['s']||KEYS['S']||KEYS['ArrowDown'])  ? 1 : 0;
   const moveL = (KEYS['q']||KEYS['Q']||KEYS['ArrowLeft'])  ? 1 : 0;
   const moveR = (KEYS['d']||KEYS['D']||KEYS['ArrowRight']) ? 1 : 0;
 
-  // Q/D rotate camera when no pointer lock
-  if(!mouseDown){
-    if(moveL) HC.camYaw += 0.04;
-    if(moveR) HC.camYaw -= 0.04;
+  // Q/D also rotate camera when no pointer lock (fallback)
+  if (!pointerLocked && !mouseDown) {
+    if (moveL) HC.camYaw += 0.04;
+    if (moveR) HC.camYaw -= 0.04;
   }
 
-  // ── MOVEMENT DIRECTION ──
-  // Camera looks in direction (-sin(camYaw), 0, -cos(camYaw)) in world space.
-  // "Forward" for the player = the direction the camera is looking at.
-  const camForwardX =  Math.sin(HC.camYaw);
-  const camForwardZ =  Math.cos(HC.camYaw);
-  const camRightX   =  Math.cos(HC.camYaw);
-  const camRightZ   = -Math.sin(HC.camYaw);
+  // ── MOVEMENT — relative to camera facing ──
+  const camFwdX =  Math.sin(HC.camYaw);
+  const camFwdZ =  Math.cos(HC.camYaw);
+  const camRgtX =  Math.cos(HC.camYaw);
+  const camRgtZ = -Math.sin(HC.camYaw);
 
-  // Build movement vector in world space
-  // Z = forward, S = backward, Q = strafe left, D = strafe right
   let mvX = 0, mvZ = 0;
-  if(moveF){ mvX += camForwardX; mvZ += camForwardZ; }   // Z = forward
-  if(moveB){ mvX -= camForwardX; mvZ -= camForwardZ; }   // S = backward
-  if(moveL && mouseDown){ mvX -= camRightX; mvZ -= camRightZ; }  // Q strafe (only when dragging cam)
-  if(moveR && mouseDown){ mvX += camRightX; mvZ += camRightZ; }
+  if (moveF) { mvX += camFwdX; mvZ += camFwdZ; }
+  if (moveB) { mvX -= camFwdX; mvZ -= camFwdZ; }
+  if (moveL) { mvX -= camRgtX; mvZ -= camRgtZ; }
+  if (moveR) { mvX += camRgtX; mvZ += camRgtZ; }
 
   const inputLen = Math.sqrt(mvX*mvX + mvZ*mvZ);
   HC.isMoving = inputLen > 0.01;
 
   // ── SPEED ──
-  const walkSpeed = 0.22;
-  const runSpeed  = 0.38; // if we add sprint later
-  const targetSpeed = HC.isMoving ? walkSpeed : 0;
-  HC.speed += (targetSpeed - HC.speed) * 0.15; // smooth acceleration
+  const walkSpeed = 0.22 * (HC.sprintMult || 1.0);
+  HC.speed += ((HC.isMoving ? walkSpeed : 0) - HC.speed) * 0.15;
 
   // ── MOVE CHARACTER ──
-  if(HC.speed > 0.005 && HC.isMoving){
+  if (HC.speed > 0.005 && HC.isMoving) {
     const norm = 1 / inputLen;
-    const dx = (mvX * norm) * HC.speed;
-    const dz = (mvZ * norm) * HC.speed;
-    const nx = humanG.position.x + dx;
-    const nz = humanG.position.z + dz;
-    if(!hitBld(nx, humanG.position.z, 1.8)) humanG.position.x = nx;
-    if(!hitBld(humanG.position.x, nz, 1.8)) humanG.position.z = nz;
+    const dx2 = (mvX * norm) * HC.speed;
+    const dz2 = (mvZ * norm) * HC.speed;
+    if (!hitBld(humanG.position.x + dx2, humanG.position.z, 1.8)) humanG.position.x += dx2;
+    if (!hitBld(humanG.position.x, humanG.position.z + dz2, 1.8)) humanG.position.z += dz2;
     clamp(humanG);
 
-    // ── CHARACTER FACING ──
-    // Character rotates to face the direction of movement
+    // ── CHARACTER FACING — smooth rotate toward movement dir ──
     const targetCharYaw = Math.atan2(mvX * norm, mvZ * norm);
-    // Smooth rotation — find shortest angular path
     let diff = targetCharYaw - HC.charYaw;
-    while(diff >  Math.PI) diff -= Math.PI*2;
-    while(diff < -Math.PI) diff += Math.PI*2;
+    while (diff >  Math.PI) diff -= Math.PI*2;
+    while (diff < -Math.PI) diff += Math.PI*2;
     HC.charYaw += diff * 0.18;
   } else {
-    HC.speed *= 0.8; // quick stop
+    HC.speed *= 0.8;
   }
 
-  // Apply character rotation (Y axis only — no tilt)
   humanG.position.y = 0.1;
   humanG.rotation.set(0, HC.charYaw, 0);
 
   // ── WALK ANIMATION ──
-  if(HC.isMoving) HC.walkT += 0.16;
-  const swing = Math.sin(HC.walkT) * (HC.isMoving ? 1 : 0);
-  const swingAmt = 0.5 * Math.min(HC.speed / walkSpeed, 1);
-  if(hParts.legL) hParts.legL.rotation.x =  swing * swingAmt;
-  if(hParts.legR) hParts.legR.rotation.x = -swing * swingAmt;
-  if(hParts.armL) hParts.armL.rotation.x = -swing * swingAmt * 0.7;
-  if(hParts.armR) hParts.armR.rotation.x =  swing * swingAmt * 0.7;
-  // Body bob
-  if(hParts.torso) hParts.torso.position.y = 4.4 + Math.abs(Math.sin(HC.walkT * 2)) * (HC.isMoving ? 0.08 : 0);
+  if (HC.isMoving) HC.walkT += 0.16;
+  const swing    = Math.sin(HC.walkT) * (HC.isMoving ? 1 : 0);
+  const swingAmt = 0.5 * Math.min(HC.speed / Math.max(walkSpeed, 0.01), 1);
+  if (hParts.legL) hParts.legL.rotation.x =  swing * swingAmt;
+  if (hParts.legR) hParts.legR.rotation.x = -swing * swingAmt;
+  if (hParts.armL) hParts.armL.rotation.x = -swing * swingAmt * 0.7;
+  if (hParts.armR) hParts.armR.rotation.x =  swing * swingAmt * 0.7;
+  if (hParts.torso) hParts.torso.position.y = 4.4 + Math.abs(Math.sin(HC.walkT*2)) * (HC.isMoving ? 0.07 : 0);
 
-  // ── GTA-STYLE THIRD-PERSON CAMERA ──
-  // Camera sits behind and above the character, at angle camYaw
-  // "Behind" = opposite of camera forward direction
-  const behindX = -Math.sin(HC.camYaw);
-  const behindZ = -Math.cos(HC.camYaw);
-
+  // ── THIRD-PERSON CAMERA with pitch ──
+  // Camera position: pivot + spherical coordinates from camYaw+camPitch
   const pivotX = humanG.position.x;
-  const pivotY = humanG.position.y + 4.5;  // chest height pivot
+  const pivotY = humanG.position.y + 4.8;
   const pivotZ = humanG.position.z;
 
-  const targetCamX = pivotX + behindX * HC.camDist;
-  const targetCamY = pivotY + HC.camHeight;
-  const targetCamZ = pivotZ + behindZ * HC.camDist;
+  const cosPitch = Math.cos(HC.camPitch);
+  const sinPitch = Math.sin(HC.camPitch);
+  const camOffX  = -Math.sin(HC.camYaw) * cosPitch * HC.camDist;
+  const camOffY  =  sinPitch * HC.camDist + 2;
+  const camOffZ  = -Math.cos(HC.camYaw) * cosPitch * HC.camDist;
 
-  // Smooth camera follow
-  camera.position.x += (targetCamX - camera.position.x) * 0.10;
-  camera.position.y += (targetCamY - camera.position.y) * 0.10;
-  camera.position.z += (targetCamZ - camera.position.z) * 0.10;
+  const targetCamX = pivotX + camOffX;
+  const targetCamY = pivotY + camOffY;
+  const targetCamZ = pivotZ + camOffZ;
 
-  // Camera always looks at character pivot
-  const lookX = pivotX;
-  const lookY = pivotY + 1.5;
-  const lookZ = pivotZ;
-  camera.lookAt(lookX, lookY, lookZ);
+  camera.position.x += (targetCamX - camera.position.x) * 0.12;
+  camera.position.y += (targetCamY - camera.position.y) * 0.12;
+  camera.position.z += (targetCamZ - camera.position.z) * 0.12;
 
-  // ── HUD ──
+  // Look at pivot (slightly above head for better framing)
+  camera.lookAt(pivotX, pivotY + 1.2, pivotZ);
+
   document.getElementById('spd-v').textContent = Math.round(HC.speed * 400);
-  document.getElementById('alt-v').textContent = '—';
+  document.getElementById('alt-v').textContent  = '—';
+}
+
+// Also apply mouse-look to plane and car camera when mouse is dragged
+function applyMouseToPlane() {
+  const { dx } = consumeMouseDelta();
+  if (Math.abs(dx) > 0.5) PS.yaw -= dx * 0.002;
+}
+function applyMouseToCar() {
+  const { dx } = consumeMouseDelta();
+  if (Math.abs(dx) > 0.5 && Math.abs(CS.speed) < 0.1) CS.yaw -= dx * 0.002;
 }
 
 function hitBld(nx,nz,margin){ return bldData.some(b=>Math.abs(nx-b.cx)<b.hw+margin&&Math.abs(nz-b.cz)<b.hd+margin); }
@@ -885,31 +999,31 @@ function setModeHUD(m) {
   const hints={
     plane:'<b>Z/↑</b> Avancer · <b>Q/D</b> Tourner · <b>Espace</b> Monter · <b>C</b> Descendre · <b>T</b> Transformer',
     car:'<b>Z/↑↓</b> Conduire · <b>Q/D</b> Tourner · <b>T</b> Transformer · Survolez les bâtiments',
-    human:'<b>Z</b> Avancer · <b>S</b> Reculer · <b>Q/D</b> Tourner la caméra · <b>Clic+glisser</b> Regarder · <b>T</b> Transformer',
+    human:'<b>Z/S</b> Avancer/Reculer · <b>Q/D</b> Strafer · <b>Souris</b> Caméra · <b>Clic gauche</b> Tirer · <b>Ctrl</b> Sprint · <b>T</b> Transformer',
   };
   document.getElementById('mode-ico').textContent=icons[m]||'✈';
   document.getElementById('mode-txt').textContent=txts[m]||'MODE AVION';
   document.getElementById('hint').innerHTML=hints[m]||'';
   document.getElementById('alt-lbl').textContent=m==='car'?'Accélération':m==='human'?'Vitesse':'Altitude (m)';
+  const lh = document.getElementById('lock-hint');
+  if (lh) lh.style.display = (m === 'human' && !pointerLocked) ? 'block' : 'none';
 }
 
 // ================================================================
 //  HOVER TOOLTIP & HIGHLIGHT
 // ================================================================
 const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2(-999,-999);
 let hovered = null;
 
-window.addEventListener('mousemove',e=>{
-  mouse.x=(e.clientX/window.innerWidth)*2-1;
-  mouse.y=-(e.clientY/window.innerHeight)*2+1;
-  const tt=document.getElementById('tooltip');
-  tt.style.left=Math.min(e.clientX+16,window.innerWidth-300)+'px';
-  tt.style.top=Math.max(e.clientY-6,6)+'px';
-});
-
 function doHover() {
-  raycaster.setFromCamera(mouse, camera);
+  // Only raycast when not pointer locked (tooltip not useful in combat)
+  if (pointerLocked) { document.getElementById('tooltip').style.opacity='0'; return; }
+  // Use center of screen for raycasting when in human mode, else mouse pos
+  const rayMouse = new THREE.Vector2(
+    (lastMouseX / window.innerWidth)*2 - 1,
+    -(lastMouseY / window.innerHeight)*2 + 1
+  );
+  raycaster.setFromCamera(rayMouse, camera);
   const allMeshes=[], m2b=new Map();
   bldData.forEach(b=>b.meshes.forEach(m=>{ allMeshes.push(m); m2b.set(m,b); }));
   const hits = raycaster.intersectObjects(allMeshes, false);
@@ -963,7 +1077,14 @@ function doMinimap() {
     ctx.fillRect(bx-4,by-4,8,8);
   });
   const pos = mode===MODE.CAR?carG.position : mode===MODE.HUMAN?humanG.position : planeG.position;
-  const yaw = mode===MODE.CAR?CS.yaw : mode===MODE.HUMAN?HS.camYaw : PS.yaw;
+  const yaw = mode===MODE.CAR?CS.yaw : mode===MODE.HUMAN?HC.camYaw : PS.yaw;
+  // Draw bots
+  bots.forEach(b=>{
+    if(!b.alive) return;
+    const bx=cx+b.group.position.x*SC*.9, by=cy+b.group.position.z*SC*.9;
+    ctx.fillStyle= matchActive ? '#ff3333' : '#888888';
+    ctx.beginPath(); ctx.arc(bx,by,3,0,Math.PI*2); ctx.fill();
+  });
   const vx=cx+pos.x*SC*.9, vy=cy+pos.z*SC*.9;
   ctx.save(); ctx.translate(vx,vy); ctx.rotate(-yaw);
   ctx.fillStyle='#fff';
@@ -972,20 +1093,401 @@ function doMinimap() {
 }
 
 // ================================================================
-//  RENDER LOOP
+//  COMBAT SYSTEM
 // ================================================================
+
+// ── GAME STATE ──
+let matchActive = false;
+let playerHP = 100, playerMaxHP = 100;
+let kills = 0;
+let sprintStamina = 100;
+let isDead = false;
+let ammo = Infinity;
+let lastShot = 0;
+const SHOOT_CD = 220; // ms between shots
+
+// ── BULLETS ──
+const bullets = [];      // player bullets
+const botBullets = [];   // enemy bullets
+
+const BULLET_MAT_PLAYER = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+const BULLET_MAT_BOT    = new THREE.MeshBasicMaterial({ color: 0xff3300 });
+const BULLET_GEO = new THREE.SphereGeometry(0.22, 5, 5);
+
+function spawnBullet(pos, dir, isBot) {
+  const mesh = new THREE.Mesh(BULLET_GEO, isBot ? BULLET_MAT_BOT : BULLET_MAT_PLAYER);
+  mesh.position.copy(pos);
+  const b = { mesh, dir: dir.clone().normalize(), speed: isBot ? 1.8 : 2.8, life: 120 };
+  scene.add(mesh);
+  (isBot ? botBullets : bullets).push(b);
+}
+
+function getPlayerPos() {
+  if (mode === MODE.PLANE)  return planeG.position;
+  if (mode === MODE.CAR)    return carG.position;
+  return humanG.position;
+}
+function getPlayerDir() {
+  // Use camera's actual forward direction — this correctly includes pitch/yaw for all modes
+  const dir = new THREE.Vector3();
+  camera.getWorldDirection(dir);
+  return dir;
+}
+
+function shootPlayer() {
+  if (isDead) return;
+  const now = Date.now();
+  if (now - lastShot < SHOOT_CD) return;
+  lastShot = now;
+  const pos = getPlayerPos().clone().add(new THREE.Vector3(0,3,0));
+  const dir = getPlayerDir();
+  spawnBullet(pos, dir, false);
+  // Muzzle flash
+  const fl = document.getElementById('xflash');
+  fl.style.background='rgba(255,255,100,.25)';
+  fl.style.opacity='1';
+  setTimeout(()=>{ fl.style.opacity='0'; fl.style.background='rgba(100,180,255,.35)'; }, 60);
+}
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'f' || e.key === 'F') shootPlayer(); // F to shoot too
+  if (e.key === 'Escape' && pointerLocked) document.exitPointerLock();
+});
+
+// ── BOT SYSTEM ──
+const bots = [];
+const NUM_BOTS = 8;
+
+function makeBotBody() {
+  const g = new THREE.Group();
+  const darkM  = new THREE.MeshPhongMaterial({ color: 0x111111, shininess: 10 });
+  const redGlow= new THREE.MeshBasicMaterial({ color: 0xff0000 });
+  const redM   = new THREE.MeshPhongMaterial({ color: 0x880000, shininess: 5 });
+
+  // Head
+  const head = new THREE.Mesh(new THREE.BoxGeometry(1.4,1.6,1.4), darkM);
+  head.position.y = 6.8; head.castShadow = true; g.add(head);
+  // Red glowing eyes
+  const eGeo = new THREE.SphereGeometry(0.2, 6, 6);
+  [-.3,.3].forEach(ex => {
+    const eye = new THREE.Mesh(eGeo, redGlow);
+    eye.position.set(ex,6.85,.73); g.add(eye);
+    const el = new THREE.PointLight(0xff0000, 0.8, 4);
+    el.position.set(ex,6.85,.73); g.add(el);
+  });
+  // Hair/cap
+  const cap = new THREE.Mesh(new THREE.BoxGeometry(1.5,.6,1.5), redM);
+  cap.position.y = 7.5; g.add(cap);
+  // Torso
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(1.8,2.4,1.1), darkM);
+  torso.position.y = 4.4; torso.castShadow = true; g.add(torso);
+  // Arms
+  ['L','R'].forEach((s,i) => {
+    const ag = new THREE.Group(); ag.position.set(i===0?-1.05:1.05, 5.3, 0);
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(.55,2,.55), darkM); arm.position.y=-1; ag.add(arm);
+    g.add(ag); g.userData['arm'+s] = ag;
+  });
+  // Legs
+  ['L','R'].forEach((s,i) => {
+    const lg = new THREE.Group(); lg.position.set(i===0?-.45:.45, 3.2, 0);
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(.7,2.5,.65), darkM); leg.position.y=-1.25; lg.add(leg);
+    const shoe = new THREE.Mesh(new THREE.BoxGeometry(.75,.65,.95), redM); shoe.position.set(0,-2.8,.15); lg.add(shoe);
+    g.add(lg); g.userData['leg'+s] = lg;
+  });
+  // Gun
+  const gun = new THREE.Mesh(new THREE.BoxGeometry(.3,.3,1.8), new THREE.MeshPhongMaterial({color:0x333333,shininess:60}));
+  gun.position.set(1.1,4.6,.9); g.add(gun);
+
+  return g;
+}
+
+// Random patrol positions around city blocks
+const PATROL_POINTS = [
+  [40,20],[40,-20],[-40,20],[-40,-20],[70,40],[70,-40],[-70,40],[-70,-40],
+  [20,60],[20,-60],[-20,60],[-20,-60],[55,5],[55,-5],[-55,5],[-55,-5],
+];
+
+function spawnBots() {
+  for (let i = 0; i < NUM_BOTS; i++) {
+    const g = makeBotBody();
+    const pp = PATROL_POINTS[i % PATROL_POINTS.length];
+    g.position.set(pp[0] + (Math.random()-0.5)*10, 0.1, pp[1] + (Math.random()-0.5)*10);
+    g.rotation.y = Math.random() * Math.PI * 2;
+    scene.add(g);
+    bots.push({
+      group: g,
+      hp: 60,
+      maxHp: 60,
+      speed: 0.08 + Math.random()*0.04,
+      walkT: Math.random()*Math.PI*2,
+      patrolT: 0,
+      patrolTarget: new THREE.Vector3(pp[0], 0.1, pp[1]),
+      lastShot: 0,
+      shotCD: 1600 + Math.random()*1400,
+      alive: true,
+      yaw: Math.random()*Math.PI*2,
+    });
+  }
+  document.getElementById('bot-count').textContent = NUM_BOTS;
+}
+
+function updateBots(dt) {
+  const playerPos = getPlayerPos();
+  let aliveCount = 0;
+
+  bots.forEach(bot => {
+    if (!bot.alive) return;
+    aliveCount++;
+    const g = bot.group;
+
+    if (matchActive && !isDead) {
+      // ── COMBAT MODE: chase + shoot player ──
+      const dx = playerPos.x - g.position.x;
+      const dz = playerPos.z - g.position.z;
+      const dist = Math.sqrt(dx*dx + dz*dz);
+
+      // Face player
+      bot.yaw = Math.atan2(dx, dz);
+      g.rotation.y = bot.yaw;
+
+      // Move toward player (stop at attack range)
+      if (dist > 14) {
+        const nx = g.position.x + (dx/dist)*bot.speed;
+        const nz = g.position.z + (dz/dist)*bot.speed;
+        if (!hitBld(nx, g.position.z, 1.2)) g.position.x = nx;
+        if (!hitBld(g.position.x, nz, 1.2)) g.position.z = nz;
+        bot.walkT += 0.13;
+      }
+
+      // Shoot at player
+      const now = Date.now();
+      if (dist < 50 && now - bot.lastShot > bot.shotCD) {
+        bot.lastShot = now;
+        const shootFrom = g.position.clone().add(new THREE.Vector3(0,5,0));
+        const dir = new THREE.Vector3(dx,0,dz).normalize();
+        dir.y = (playerPos.y + 4 - shootFrom.y) / dist * 0.5;
+        spawnBullet(shootFrom, dir, true);
+      }
+
+    } else {
+      // ── PATROL MODE ──
+      bot.patrolT += dt;
+      const dx2 = bot.patrolTarget.x - g.position.x;
+      const dz2 = bot.patrolTarget.z - g.position.z;
+      const d2 = Math.sqrt(dx2*dx2 + dz2*dz2);
+
+      if (d2 < 2 || bot.patrolT > 5) {
+        // pick new patrol target
+        bot.patrolT = 0;
+        const pp = PATROL_POINTS[Math.floor(Math.random()*PATROL_POINTS.length)];
+        bot.patrolTarget.set(pp[0]+(Math.random()-0.5)*15, 0.1, pp[1]+(Math.random()-0.5)*15);
+      } else {
+        bot.yaw = Math.atan2(dx2, dz2);
+        g.rotation.y = bot.yaw;
+        const sp = 0.06;
+        const nx = g.position.x + (dx2/d2)*sp;
+        const nz = g.position.z + (dz2/d2)*sp;
+        if (!hitBld(nx, g.position.z, 1.2)) g.position.x = nx;
+        if (!hitBld(g.position.x, nz, 1.2)) g.position.z = nz;
+        bot.walkT += 0.10;
+      }
+    }
+
+    // Walk animation
+    const sw = Math.sin(bot.walkT) * 0.45;
+    if(g.userData.legL) g.userData.legL.rotation.x =  sw;
+    if(g.userData.legR) g.userData.legR.rotation.x = -sw;
+    if(g.userData.armL) g.userData.armL.rotation.x = -sw*0.6;
+    if(g.userData.armR) g.userData.armR.rotation.x =  sw*0.6;
+    g.position.y = 0.1;
+  });
+
+  document.getElementById('bot-count').textContent = aliveCount;
+}
+
+// ── BULLET UPDATES ──
+function updateBullets() {
+  const playerPos = getPlayerPos();
+
+  // Player bullets hitting bots
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    b.mesh.position.addScaledVector(b.dir, b.speed);
+    b.life--;
+    if (b.life <= 0 || hitBld(b.mesh.position.x, b.mesh.position.z, 0.5)) {
+      scene.remove(b.mesh); bullets.splice(i,1); continue;
+    }
+    // Check bot hits
+    let hit = false;
+    bots.forEach(bot => {
+      if (!bot.alive || hit) return;
+      const d = b.mesh.position.distanceTo(bot.group.position.clone().add(new THREE.Vector3(0,4,0)));
+      if (d < 3) {
+        hit = true;
+        bot.hp -= 25;
+        spawnHitEffect(b.mesh.position.clone(), false);
+        if (bot.hp <= 0) killBot(bot);
+      }
+    });
+    if (hit) { scene.remove(b.mesh); bullets.splice(i,1); }
+  }
+
+  // Bot bullets hitting player
+  if (!isDead) {
+    for (let i = botBullets.length - 1; i >= 0; i--) {
+      const b = botBullets[i];
+      b.mesh.position.addScaledVector(b.dir, b.speed);
+      b.life--;
+      if (b.life <= 0 || hitBld(b.mesh.position.x, b.mesh.position.z, 0.5)) {
+        scene.remove(b.mesh); botBullets.splice(i,1); continue;
+      }
+      const d = b.mesh.position.distanceTo(playerPos.clone().add(new THREE.Vector3(0,4,0)));
+      if (d < 3.5) {
+        scene.remove(b.mesh); botBullets.splice(i,1);
+        hurtPlayer(12);
+      }
+    }
+  }
+}
+
+// ── HIT EFFECT ──
+function spawnHitEffect(pos, isPlayer) {
+  const geo = new THREE.SphereGeometry(0.5,5,5);
+  const mat = new THREE.MeshBasicMaterial({ color: isPlayer ? 0xff2200 : 0xffcc00 });
+  const m = new THREE.Mesh(geo, mat);
+  m.position.copy(pos);
+  scene.add(m);
+  let t = 0;
+  const id = setInterval(() => {
+    t++;
+    m.scale.setScalar(1 + t*0.15);
+    mat.opacity = 1 - t/10;
+    if (t >= 10) { clearInterval(id); scene.remove(m); }
+  }, 30);
+}
+
+// ── KILL BOT ──
+function killBot(bot) {
+  bot.alive = false;
+  bot.group.rotation.x = Math.PI/2; // fall
+  bot.group.position.y = -0.5;
+  kills++;
+  document.getElementById('kill-count').textContent = kills;
+  addKillFeed('🎯 Bot éliminé');
+  setTimeout(() => { scene.remove(bot.group); }, 3000);
+}
+
+// ── HURT PLAYER ──
+function hurtPlayer(dmg) {
+  if (isDead) return;
+  playerHP = Math.max(0, playerHP - dmg);
+  updateHealthUI();
+  const fl = document.getElementById('dmg-flash');
+  fl.style.opacity='1'; setTimeout(()=>fl.style.opacity='0',120);
+  if (playerHP <= 0) triggerDeath();
+}
+
+function updateHealthUI() {
+  const pct = (playerHP/playerMaxHP)*100;
+  const fill = document.getElementById('health-fill');
+  fill.style.width = pct+'%';
+  fill.style.background = pct > 60 ? 'linear-gradient(90deg,#22cc44,#44ff66)'
+    : pct > 30 ? 'linear-gradient(90deg,#f59e0b,#ffcc44)'
+    : 'linear-gradient(90deg,#ff3333,#ff6644)';
+}
+
+// ── DEATH & RESPAWN ──
+function triggerDeath() {
+  isDead = true;
+  const ds = document.getElementById('dead-screen'); ds.style.display='flex';
+  let cnt = 3;
+  document.getElementById('respawn-count').textContent = cnt;
+  addKillFeed('💀 Vous êtes mort!');
+  const id = setInterval(() => {
+    cnt--;
+    document.getElementById('respawn-count').textContent = cnt;
+    if (cnt <= 0) { clearInterval(id); respawn(); }
+  }, 1000);
+}
+
+function respawn() {
+  isDead = false;
+  playerHP = playerMaxHP;
+  updateHealthUI();
+  document.getElementById('dead-screen').style.display='none';
+  // Teleport player to safe spawn
+  planeG.position.set(0,70,0); carG.position.set(0,.5,20); humanG.position.set(0,.1,20);
+  HC.charYaw = 0; HC.camYaw = 0;
+  addKillFeed('♻ Respawn!');
+}
+
+// ── KILL FEED ──
+function addKillFeed(text) {
+  const kf = document.getElementById('killfeed');
+  const el = document.createElement('div'); el.className='kf-item'; el.textContent=text;
+  kf.appendChild(el);
+  setTimeout(()=>{ el.style.transition='opacity .5s'; el.style.opacity='0'; setTimeout(()=>el.remove(),500); },2500);
+}
+
+// ── MATCH TOGGLE ──
+function toggleMatch() {
+  matchActive = !matchActive;
+  const btn = document.getElementById('match-btn');
+  const sp = document.getElementById('score-panel');
+  const ch = document.getElementById('crosshair');
+  if (matchActive) {
+    btn.textContent = '🛑 ARRÊTER COMBAT';
+    btn.classList.add('active');
+    sp.style.display='flex'; ch.style.opacity='1';
+    addKillFeed('⚔ Combat démarré!');
+    kills=0; document.getElementById('kill-count').textContent=0;
+    playerHP=playerMaxHP; updateHealthUI();
+    // Revive all dead bots
+    bots.forEach(b=>{
+      if(!b.alive){ b.alive=true; b.hp=b.maxHp; b.group.rotation.x=0; b.group.position.y=0.1; scene.add(b.group); }
+    });
+    document.getElementById('bot-count').textContent=bots.filter(b=>b.alive).length;
+  } else {
+    btn.textContent = '⚔ DÉMARRER COMBAT';
+    btn.classList.remove('active');
+    sp.style.display='none'; ch.style.opacity='0';
+    addKillFeed('✋ Combat terminé');
+  }
+}
+
+// ── SPRINT ──
+function updateSprint() {
+  if (mode !== MODE.HUMAN) { document.getElementById('sprint-bar').style.display='none'; return; }
+  document.getElementById('sprint-bar').style.display='block';
+  const isSprinting = KEYS['Control']||KEYS['Shift'];
+  if (isSprinting && sprintStamina > 0) {
+    HC.sprintMult = 1.8;
+    sprintStamina = Math.max(0, sprintStamina - 0.8);
+  } else {
+    HC.sprintMult = 1.0;
+    sprintStamina = Math.min(100, sprintStamina + 0.3);
+  }
+  document.getElementById('sprint-fill').style.width = sprintStamina+'%';
+}
+
+// Attach to HC
+HC.sprintMult = 1.0;
 const clock = new THREE.Clock();
 
 function loop() {
   requestAnimationFrame(loop);
   const dt = Math.min(clock.getDelta(), .05);
   if (!gameOn) { renderer.render(scene, camera); return; }
-  if (mode===MODE.PLANE)    doPlane();
-  else if (mode===MODE.CAR) doCar();
+  if (mode===MODE.PLANE)      doPlane();
+  else if (mode===MODE.CAR)   doCar();
   else if (mode===MODE.HUMAN) doHuman();
   else if (mode===MODE.XFORM) doXform(dt);
   // Animate clouds
   clouds.forEach(c=>{ c.position.x+=c.userData.vx; if(c.position.x>450) c.position.x=-450; });
+  // Combat systems
+  updateSprint();
+  updateBots(dt);
+  updateBullets();
   doHover();
   doMinimap();
   renderer.render(scene, camera);
@@ -995,10 +1497,11 @@ function startGame() {
   const el = document.getElementById('intro');
   el.style.opacity='0'; setTimeout(()=>{ el.style.display='none'; gameOn=true; },900);
   setModeHUD(MODE.PLANE);
+  updateHealthUI();
 }
 
 // BOOT
-buildWorld(); buildPlane(); buildCar(); buildHuman();
+buildWorld(); buildPlane(); buildCar(); buildHuman(); spawnBots();
 loop();
 </script>
 </body>
